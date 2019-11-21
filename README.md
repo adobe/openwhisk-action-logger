@@ -1,4 +1,4 @@
-# Openwhisk Action Logger
+# OpenWhisk Action Logger
 > Logger for OpenWhisk actions.
 
 ## Status
@@ -31,8 +31,9 @@ module.exports.main = wrap(main)
 
 * [logger](#module_logger)
     * [~init(params, [logger])](#module_logger..init) ⇒
-    * [~wrap(fn, params, [logger])](#module_logger..wrap) ⇒ <code>\*</code>
-    * [~logger(fn, [logger])](#module_logger..logger) ⇒ <code>ActionFunction</code>
+    * [~wrap(fn, params, [opts])](#module_logger..wrap) ⇒ <code>\*</code>
+    * [~trace(fn)](#module_logger..trace) ⇒ <code>ActionFunction</code>
+    * [~logger(fn, [opts])](#module_logger..logger) ⇒ <code>ActionFunction</code>
 
 <a name="module_logger..init"></a>
 
@@ -50,10 +51,9 @@ if not already present on `params.__ow_logger`.
 
 <a name="module_logger..wrap"></a>
 
-### logger~wrap(fn, params, [logger]) ⇒ <code>\*</code>
+### logger~wrap(fn, params, [opts]) ⇒ <code>\*</code>
 Takes a main OpenWhisk function and intitializes logging, by invoking [init](init).
-It logs invocation details on `trace` level before and after the actual action invocation.
-it also creates a bunyan logger and binds it to the `__ow_logger` params.
+It also creates a bunyan logger and binds it to the `__ow_logger` params.
 
 **Kind**: inner method of [<code>logger</code>](#module_logger)  
 **Returns**: <code>\*</code> - the return value of the action  
@@ -62,11 +62,26 @@ it also creates a bunyan logger and binds it to the `__ow_logger` params.
 | --- | --- | --- | --- |
 | fn | <code>ActionFunction</code> |  | original OpenWhisk action main function |
 | params | <code>\*</code> |  | OpenWhisk action params |
-| [logger] | <code>MultiLogger</code> | <code>rootLogger</code> | a helix multi logger. defaults to the helix                                            `rootLogger`. |
+| [opts] | <code>object</code> |  | Additional wrapping options |
+| [opts.fields] | <code>object</code> |  | Additional fields to log with the `ow` logging fields. |
+| [opts.logger] | <code>MultiLogger</code> | <code>rootLogger</code> | a helix multi logger. defaults to the helix                                            `rootLogger`. |
+
+<a name="module_logger..trace"></a>
+
+### logger~trace(fn) ⇒ <code>ActionFunction</code>
+Creates a tracer function that logs invocation details on `trace` level before and after the
+actual action invocation.
+
+**Kind**: inner method of [<code>logger</code>](#module_logger)  
+**Returns**: <code>ActionFunction</code> - an action function instrumented with tracing.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| fn | <code>ActionFunction</code> | original OpenWhisk action main function |
 
 <a name="module_logger..logger"></a>
 
-### logger~logger(fn, [logger]) ⇒ <code>ActionFunction</code>
+### logger~logger(fn, [opts]) ⇒ <code>ActionFunction</code>
 Wrap function that returns an OpenWhisk function that is enabled with logging.
 
 **Kind**: inner method of [<code>logger</code>](#module_logger)  
@@ -76,7 +91,9 @@ Wrap function that returns an OpenWhisk function that is enabled with logging.
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | fn | <code>ActionFunction</code> |  | original OpenWhisk action main function |
-| [logger] | <code>MultiLogger</code> | <code>rootLogger</code> | a helix multi logger. defaults to the helix                                            `rootLogger`. |
+| [opts] | <code>object</code> |  | Additional wrapping options |
+| [opts.fields] | <code>object</code> |  | Additional fields to log with the `ow` logging fields. |
+| [opts.logger] | <code>MultiLogger</code> | <code>rootLogger</code> | a helix multi logger. defaults to the helix                                            `rootLogger`. |
 
 **Example**  
 
@@ -88,5 +105,6 @@ async main(params) {
 }
 
 module.exports.main = wrap(main)
+  .with(logger.trace)
   .with(logger);
 ```
