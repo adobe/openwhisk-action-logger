@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@adobe/helix-log": "4.1.0",
-    "bunyan": "^1.8.12",
     "dotenv": "^8.2.0",
     "cls-hooked": "^4.2.2"
   },

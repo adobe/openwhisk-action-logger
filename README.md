@@ -18,53 +18,40 @@ Wrap function that returns an OpenWhisk function that is enabled with logging.
 **Usage:**
 
 ```js
-const { logger, wrap } = require('@adobe/openwhisk-action-logger'};
+const { wrap } = require('@adobe/openwhisk-action-utils'};
+const { logger } = require('@adobe/openwhisk-action-logger'};
 
 async main(params) {
   //…my action code…
 }
 
 module.exports.main = wrap(main)
+  .with(logger.trace)
   .with(logger);
 ```
 
 
 * [logger](#module_logger)
-    * [~init(params, [logger])](#module_logger..init) ⇒
-    * [~wrap(fn, params, [opts])](#module_logger..wrap) ⇒ <code>\*</code>
+    * [~init(params, [logger])](#module_logger..init) ⇒ <code>SimpleInterface</code>
     * [~trace(fn)](#module_logger..trace) ⇒ <code>ActionFunction</code>
     * [~logger(fn, [opts])](#module_logger..logger) ⇒ <code>ActionFunction</code>
 
 <a name="module_logger..init"></a>
 
-### logger~init(params, [logger]) ⇒
-Initializes helix-log and sets up external loggers. It also creates a bunyan-logger
-if not already present on `params.__ow_logger`.
+### logger~init(params, [logger]) ⇒ <code>SimpleInterface</code>
+Initializes helix-log that adds additional activation related fields to the loggers.
+It also looks for credential params and tries to add additional external logger
+(eg. coralogix, papertrail).
+
+It also initializes `params.__ow_logger` with a SimpleInterface if not already present.
 
 **Kind**: inner method of [<code>logger</code>](#module_logger)  
-**Returns**: BunyanLogger A bunyan logger.  
+**Returns**: <code>SimpleInterface</code> - the helix-log simple interface  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | params | <code>\*</code> |  | openwhisk action params. |
 | [logger] | <code>MultiLogger</code> | <code>rootLogger</code> | a helix multi logger. defaults to the helix                                            `rootLogger`. |
-
-<a name="module_logger..wrap"></a>
-
-### logger~wrap(fn, params, [opts]) ⇒ <code>\*</code>
-Takes a main OpenWhisk function and intitializes logging, by invoking [init](init).
-It also creates a bunyan logger and binds it to the `__ow_logger` params.
-
-**Kind**: inner method of [<code>logger</code>](#module_logger)  
-**Returns**: <code>\*</code> - the return value of the action  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| fn | <code>ActionFunction</code> |  | original OpenWhisk action main function |
-| params | <code>\*</code> |  | OpenWhisk action params |
-| [opts] | <code>object</code> |  | Additional wrapping options |
-| [opts.fields] | <code>object</code> |  | Additional fields to log with the `ow` logging fields. |
-| [opts.logger] | <code>MultiLogger</code> | <code>rootLogger</code> | a helix multi logger. defaults to the helix                                            `rootLogger`. |
 
 <a name="module_logger..trace"></a>
 
@@ -85,8 +72,7 @@ actual action invocation.
 Wrap function that returns an OpenWhisk function that is enabled with logging.
 
 **Kind**: inner method of [<code>logger</code>](#module_logger)  
-**Returns**: <code>ActionFunction</code> - a new function with the same signature as your original
-                                      main function  
+**Returns**: <code>ActionFunction</code> - a new function with the same signature as your original main function  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -98,7 +84,8 @@ Wrap function that returns an OpenWhisk function that is enabled with logging.
 **Example**  
 
 ```js
-const { logger, wrap } = require('@adobe/openwhisk-action-logger'};
+const { wrap } = require('@adobe/openwhisk-action-utils'};
+const { logger } = require('@adobe/openwhisk-action-logger'};
 
 async main(params) {
   //…my action code…

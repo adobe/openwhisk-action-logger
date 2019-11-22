@@ -9,7 +9,7 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-/* eslint-disable no-underscore-dangle,no-console,no-else-return */
+/* eslint-disable no-underscore-dangle */
 
 /**
  * Wrap function that returns an OpenWhisk function that is enabled with logging.
@@ -17,13 +17,15 @@
  * **Usage:**
  *
  * ```js
- * const { logger, wrap } = require('@adobe/openwhisk-action-logger'};
+ * const { wrap } = require('@adobe/openwhisk-action-utils'};
+ * const { logger } = require('@adobe/openwhisk-action-logger'};
  *
  * async main(params) {
  *   //…my action code…
  * }
  *
  * module.exports.main = wrap(main)
+ *   .with(logger.trace)
  *   .with(logger);
  * ```
  *
@@ -33,11 +35,9 @@
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
-const bunyan = require('bunyan');
 const dotenv = require('dotenv');
 const {
-  BunyanStreamInterface, eraseBunyanDefaultFields, rootLogger,
-  JsonifyForLog, MultiLogger,
+  rootLogger, JsonifyForLog, MultiLogger, SimpleInterface,
 } = require('@adobe/helix-log');
 const { createNamespace } = require('cls-hooked');
 
@@ -113,35 +113,18 @@ class OpenWhiskLogger extends MultiLogger {
 }
 
 /**
- * Bunyan serializers
- * @private
- */
-const serializers = {
-  res: (res) => {
-    if (!res || !res.statusCode) {
-      return res;
-    }
-    return {
-      statusCode: res.statusCode,
-      duration: res.duration,
-      headers: res.getHeaders(),
-    };
-  },
-  req: bunyan.stdSerializers.req,
-  err: bunyan.stdSerializers.err,
-};
-
-/**
- * Initializes a helix-log logger for use with an openwhisk action.
- * It ensures that, the given logger has a default console logger configured. It also looks for
- * credential params and tries to add additional external logger (eg. coralogix, papertrail).
+ * Initializes helix-log that adds additional activation related fields to the loggers.
+ * It also looks for credential params and tries to add additional external logger
+ * (eg. coralogix, papertrail).
  *
- * @private
- * @param {*} params                        - the openwhisk action params
+ * It also initializes `params.__ow_logger` with a SimpleInterface if not already present.
+ *
+ * @param {*} params - openwhisk action params.
  * @param {MultiLogger} [logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
+ * @return {SimpleInterface} the helix-log simple interface
  */
-function setupHelixLogger(params, logger = rootLogger) {
+function init(params, logger = rootLogger) {
   // add openwhisklogger to helix-log logger
   if (!logger.loggers.has('OpenWhiskLogger')) {
     const owLogger = new OpenWhiskLogger({});
@@ -163,69 +146,19 @@ function setupHelixLogger(params, logger = rootLogger) {
       console.log('configured papertrail logger.');
     }
   }
-  return logger;
-}
 
-/**
- * Sets up a bunyan logger suitable to use with an openwhisk action. The bunyan logger will
- * stream to the given helix logger. It will add a new bunyan-logger to `params.__ow_logger`
- * if not already present.
- *
- * @private
- * @param {*} params                   - the openwhisk action params
- * @param {Logger} [logger=rootLogger] - a helix multi logger. defaults to the helix `rootLogger`.
- * @return {BunyanLogger} A bunyan logger
- */
-function setupBunyanLogger(params, logger = rootLogger) {
-  const cfg = config();
+  // create SimpleInterface if needed
   if (!params.__ow_logger) {
     // eslint-disable-next-line no-param-reassign
-    params.__ow_logger = bunyan.createLogger({
-      name: cfg.pkgName,
-      serializers,
-      streams: [],
+    params.__ow_logger = new SimpleInterface({
+      logger,
     });
   }
-  const { __ow_logger: log } = params;
-
-  // check for bunyan methods
-  if (!log.streams || !log.addStream) {
-    return log;
-  }
-
-  // check if not already added
-  if (!log.streams.find((s) => s.name === 'BunyanStreamInterface')) {
-    log.addStream({
-      name: 'BunyanStreamInterface',
-      level: 'trace',
-      type: 'raw',
-      stream: new BunyanStreamInterface({
-        logger,
-        filter: eraseBunyanDefaultFields,
-      }),
-    });
-  }
-  return log;
-}
-
-/**
- * Initializes helix-log and sets up external loggers. It also creates a bunyan-logger
- * if not already present on `params.__ow_logger`.
- *
- * @param {*} params - openwhisk action params.
- * @param {MultiLogger} [logger=rootLogger] - a helix multi logger. defaults to the helix
- *                                            `rootLogger`.
- * @return BunyanLogger A bunyan logger.
- */
-function init(params, logger = rootLogger) {
-  setupHelixLogger(params, logger);
-  setupBunyanLogger(params, logger);
   return params.__ow_logger;
 }
 
 /**
  * Takes a main OpenWhisk function and intitializes logging, by invoking {@link init}.
- * It also creates a bunyan logger and binds it to the `__ow_logger` params.
  *
  * @param {ActionFunction} fn - original OpenWhisk action main function
  * @param {*} params - OpenWhisk action params
@@ -233,6 +166,7 @@ function init(params, logger = rootLogger) {
  * @param {object} [opts.fields] - Additional fields to log with the `ow` logging fields.
  * @param {MultiLogger} [opts.logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
+ * @private
  * @returns {*} the return value of the action
  */
 async function wrap(fn, params = {}, { logger = rootLogger, fields = {} } = {}) {
@@ -267,17 +201,20 @@ function trace(fn) {
         });
       delete disclosedParams.__ow_logger;
       const { __ow_logger: log } = params;
+      // be a bit compatible
+      const trc = log.traceFields ? (f, m) => log.traceFields(m, f) : log.trace;
+      const err = log.errorFields ? (f, m) => log.errorFields(m, f) : log.error;
       try {
-        log.trace({
+        trc({
           params: disclosedParams,
         }, 'before');
         const result = await fn(params);
-        log.trace({
+        trc({
           result,
         }, 'result');
         return result;
       } catch (e) {
-        log.error({
+        err({
           params: disclosedParams,
           error: e,
         }, 'error');
@@ -286,6 +223,7 @@ function trace(fn) {
         };
       }
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error(e);
       return {
         statusCode: e.statusCode || 500,
@@ -300,7 +238,8 @@ function trace(fn) {
  * @example <caption></caption>
  *
  * ```js
- * const { logger, wrap } = require('@adobe/openwhisk-action-logger'};
+ * const { wrap } = require('@adobe/openwhisk-action-utils'};
+ * const { logger } = require('@adobe/openwhisk-action-logger'};
  *
  * async main(params) {
  *   //…my action code…
@@ -317,15 +256,13 @@ function trace(fn) {
  * @param {object} [opts.fields] - Additional fields to log with the `ow` logging fields.
  * @param {MultiLogger} [opts.logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
- * @returns {ActionFunction} a new function with the same signature as your original
- *                                       main function
+ * @returns {ActionFunction} a new function with the same signature as your original main function
  */
 function wrapper(fn, opts) {
   return (params) => wrap(fn, params, opts);
 }
 
 module.exports = Object.assign(wrapper, {
-  wrap,
   init,
   trace,
 });
