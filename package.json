@@ -23,7 +23,7 @@
     "dotenv": "^8.2.0"
   },
   "devDependencies": {
-    "@adobe/openwhisk-action-utils": "2.7.2",
+    "@adobe/openwhisk-action-utils": "2.7.3",
     "@semantic-release/changelog": "^3.0.5",
     "@semantic-release/git": "^7.0.17",
     "codecov": "^3.6.1",
