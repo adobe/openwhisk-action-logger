@@ -11,13 +11,7 @@
  */
 
 import { ActionFunction } from '@adobe/openwhisk-action-utils';
-import { MultiLogger } from '@adobe/helix-log';
-
-/**
- * Logger from Bunyan
- * @see https://github.com/trentm/node-bunyan
- */
-declare interface BunyanLogger {}
+import { MultiLogger, SimpleInterface } from '@adobe/helix-log';
 
 /**
  * Options for the wrap functions
@@ -41,13 +35,15 @@ declare interface WrapOptions {
  * @example <caption></caption>
  *
  * ```js
- * const { logger, wrap } = require('@adobe/openwhisk-action-logger'};
+ * const { wrap } = require('@adobe/openwhisk-action-utils'};
+ * const { logger } = require('@adobe/openwhisk-action-logger'};
  *
  * async main(params) {
  *   //…my action code…
  * }
  *
  * module.exports.main = wrap(main)
+ *   .with(logger.trace)
  *   .with(logger);
  * ```
  *
@@ -68,18 +64,7 @@ export declare namespace logger {
    *                                            `rootLogger`.
    * @returns BunyanLogger a bunyan logger.
    */
-  export function init(params: object, logger: MultiLogger): BunyanLogger;
-
-  /**
-   * Takes a main OpenWhisk function and intitializes logging, by invoking {@link init}.
-   * it also creates a bunyan logger and binds it to the `__ow_logger` params.
-   *
-   * @param {ActionFunction} fn - original OpenWhisk action main function
-   * @param {*} params - OpenWhisk action params
-   * @param {WrapOptions} [opts] - optional options.
-   * @returns {*} the return value of the action
-   */
-  export function wrap(fn: ActionFunction, params: object, opts: WrapOptions): object;
+  export function init(params: object, logger: MultiLogger): SimpleInterface;
 
   /**
    * Creates a tracer function that logs invocation details on `trace` level before and after the
