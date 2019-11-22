@@ -1,10 +1,10 @@
 {
-  "name": "@adobe/openwhisk-action-utils",
-  "version": "2.7.2",
-  "description": "Utilities for OpenWhisk Actions",
+  "name": "@adobe/openwhisk-action-logger",
+  "version": "0.0.9",
+  "description": "Logger for OpenWhisk Actions",
   "license": "Apache-2.0",
-  "repository": "https://github.com/adobe/openwhisk-action-utils",
-  "bugs": "https://github.com/adobe/openwhisk-action-utils/issues",
+  "repository": "https://github.com/adobe/openwhisk-action-logger",
+  "bugs": "https://github.com/adobe/openwhisk-action-logger/issues",
   "keywords": [
     "openwhisk"
   ],
@@ -20,25 +20,20 @@
   "dependencies": {
     "@adobe/helix-log": "4.0.0",
     "bunyan": "^1.8.12",
-    "dotenv": "^8.2.0",
-    "openwhisk": "^3.20.0",
-    "serverless-http": "^2.3.0"
+    "dotenv": "^8.2.0"
   },
   "devDependencies": {
+    "@adobe/openwhisk-action-utils": "2.7.2",
     "@semantic-release/changelog": "^3.0.5",
     "@semantic-release/git": "^7.0.17",
-    "@semantic-release/github": "^5.5.5",
-    "body-parser": "^1.19.0",
     "codecov": "^3.6.1",
     "eslint": "^6.6.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "express": "^4.17.1",
     "ghooks": "^2.0.4",
     "jsdoc-to-markdown": "^5.0.2",
     "lint-staged": "^9.4.2",
-    "lodash": "^4.17.15",
     "mocha": "^6.2.2",
     "mocha-junit-reporter": "^1.23.1",
     "nock": "^11.7.0",

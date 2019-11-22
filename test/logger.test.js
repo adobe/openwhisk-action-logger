@@ -19,8 +19,8 @@ const net = require('net');
 const {
   MultiLogger, MemLogger, SimpleInterface,
 } = require('@adobe/helix-log');
+const { wrap } = require('@adobe/openwhisk-action-utils');
 const logger = require('../src/logger.js');
-const { wrap } = require('../src/wrap');
 
 describe('Loggers', () => {
   let myRootLogger;

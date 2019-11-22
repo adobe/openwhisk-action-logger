@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import { ActionFunction } from './wrap';
+import { ActionFunction } from '@adobe/openwhisk-action-utils';
 import { MultiLogger } from '@adobe/helix-log';
 
 /**
@@ -25,7 +25,7 @@ declare interface BunyanLogger {}
  * @example <caption></caption>
  *
  * ```js
- * const { logger, wrap } = require('@adobe/openwhisk-action-utils'};
+ * const { logger, wrap } = require('@adobe/openwhisk-action-logger'};
  *
  * async main(params) {
  *   //…my action code…
