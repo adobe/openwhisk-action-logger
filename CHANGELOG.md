@@ -1,3 +1,21 @@
+# [2.0.0](https://github.com/adobe/openwhisk-action-logger/compare/v1.0.1...v2.0.0) (2019-11-25)
+
+
+### Features
+
+* **logging:** use cls-hooked to allow for custom non-env based fields ([f4daaf8](https://github.com/adobe/openwhisk-action-logger/commit/f4daaf8a204689f613a840dec96f088d147ee7e6))
+* **logging:** use SimpleInterface instead of bunyan logger ([7561771](https://github.com/adobe/openwhisk-action-logger/commit/75617714c0867aca79575110caaddf610f3ea5dd))
+
+
+### BREAKING CHANGES
+
+* **logging:** the params.__ow_logger is no longer a bunyan logger but a
+                 helix-log SimpleInterface
+* **logging:** the wrap() function no longer sets up tracing. this moved
+                 to logger.trace
+                 Further more, the wrap() and wrapper() signature has changed
+                 using an option object instead of arguments.
+
 ## [1.0.1](https://github.com/adobe/openwhisk-action-logger/compare/v1.0.0...v1.0.1) (2019-11-24)
 
 
