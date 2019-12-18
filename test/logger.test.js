@@ -94,6 +94,20 @@ describe('Loggers', () => {
     }]);
   });
 
+  it('log methods are bound to logger', () => {
+    const params = {};
+    logger.init(params, myRootLogger);
+    myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);
+
+    const { info } = params.__ow_logger;
+    info('Hello, world');
+    assert.deepEqual(memLogger.buf, [{
+      level: 'info',
+      message: ['Hello, world'],
+      timestamp: '1970-01-01T00:00:00.000Z',
+    }]);
+  });
+
   it('openhwisk logging adds ow fields', () => {
     logger.init({}, myRootLogger);
     myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);

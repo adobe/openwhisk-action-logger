@@ -149,10 +149,15 @@ function init(params, logger = rootLogger) {
 
   // create SimpleInterface if needed
   if (!params.__ow_logger) {
-    // eslint-disable-next-line no-param-reassign
-    params.__ow_logger = new SimpleInterface({
+    const simple = new SimpleInterface({
       logger,
     });
+    // bind log methods to logger itself, so it's easier to pass them as functions.
+    ['log', 'silly', 'trace', 'debug', 'verbose', 'info', 'warn', 'error', 'fatal'].forEach((n) => {
+      simple[n] = simple[n].bind(simple);
+    });
+    // eslint-disable-next-line no-param-reassign
+    params.__ow_logger = simple;
   }
   return params.__ow_logger;
 }
