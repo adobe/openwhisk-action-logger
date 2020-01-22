@@ -1,3 +1,10 @@
+## [2.0.4](https://github.com/adobe/openwhisk-action-logger/compare/v2.0.3...v2.0.4) (2020-01-22)
+
+
+### Bug Fixes
+
+* **logger:** remove unused config ([#29](https://github.com/adobe/openwhisk-action-logger/issues/29)) ([d5778c8](https://github.com/adobe/openwhisk-action-logger/commit/d5778c8c39f09957657ee5061f6eda1e7c75ad05)), closes [#28](https://github.com/adobe/openwhisk-action-logger/issues/28) [#25](https://github.com/adobe/openwhisk-action-logger/issues/25)
+
 ## [2.0.3](https://github.com/adobe/openwhisk-action-logger/compare/v2.0.2...v2.0.3) (2020-01-09)
 
 
