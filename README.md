@@ -18,11 +18,14 @@ Wrap function that returns an OpenWhisk function that is enabled with logging.
 **Usage:**
 
 ```js
-const { wrap } = require('@adobe/openwhisk-action-utils'};
-const { logger } = require('@adobe/openwhisk-action-logger'};
+const { wrap } = require('@adobe/openwhisk-action-utils');
+const { logger } = require('@adobe/openwhisk-action-logger');
 
-async main(params) {
+async function main(params) {
+  const { __ow_logger: log } = params;
+
   //…my action code…
+  log.info('.....');
 }
 
 module.exports.main = wrap(main)
@@ -84,11 +87,14 @@ Wrap function that returns an OpenWhisk function that is enabled with logging.
 **Example**  
 
 ```js
-const { wrap } = require('@adobe/openwhisk-action-utils'};
-const { logger } = require('@adobe/openwhisk-action-logger'};
+const { wrap } = require('@adobe/openwhisk-action-utils');
+const { logger } = require('@adobe/openwhisk-action-logger');
 
-async main(params) {
+async function main(params) {
+  const { __ow_logger: log } = params;
+
   //…my action code…
+  log.info('.....');
 }
 
 module.exports.main = wrap(main)
