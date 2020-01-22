@@ -15,12 +15,12 @@ const { CoralogixLogger } = require('@adobe/helix-log');
 
 let coralogixLogger = null;
 
-function createCoralogixLogger(config, params) {
+function createCoralogixLogger(params) {
   const {
     CORALOGIX_API_KEY,
     CORALOGIX_APPLICATION_NAME,
     CORALOGIX_SUBSYSTEM_NAME,
-    CORALOGIX_LOG_LEVEL,
+    CORALOGIX_LOG_LEVEL = 'info',
   } = params;
   if (!CORALOGIX_API_KEY) {
     return null;
@@ -36,7 +36,7 @@ function createCoralogixLogger(config, params) {
     const applicationName = CORALOGIX_APPLICATION_NAME || namespace;
     const subsystemName = CORALOGIX_SUBSYSTEM_NAME || owPackage || 'n/a';
     coralogixLogger = new CoralogixLogger(CORALOGIX_API_KEY, applicationName, subsystemName, {
-      level: CORALOGIX_LOG_LEVEL || config.LOG_LEVEL,
+      level: CORALOGIX_LOG_LEVEL,
     });
   }
   return coralogixLogger;

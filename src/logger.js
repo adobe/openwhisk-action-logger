@@ -17,11 +17,14 @@
  * **Usage:**
  *
  * ```js
- * const { wrap } = require('@adobe/openwhisk-action-utils'};
- * const { logger } = require('@adobe/openwhisk-action-logger'};
+ * const { wrap } = require('@adobe/openwhisk-action-utils');
+ * const { logger } = require('@adobe/openwhisk-action-logger');
  *
- * async main(params) {
+ * async function main(params) {
+ *   const { __ow_logger: log } = params;
+ *
  *   //…my action code…
+ *   log.info('.....');
  * }
  *
  * module.exports.main = wrap(main)
@@ -32,10 +35,7 @@
  * @module logger
  */
 
-const path = require('path');
-const fs = require('fs');
 const http = require('http');
-const dotenv = require('dotenv');
 const {
   rootLogger, JsonifyForLog, MultiLogger, SimpleInterface,
 } = require('@adobe/helix-log');
@@ -48,27 +48,6 @@ const CLS_NAMESPACE_NAME = 'ow-util-logger';
 const LOGGER_OW_FIELDS_NAME = 'ow-fields';
 
 const CLS_NAMESPACE = createNamespace(CLS_NAMESPACE_NAME);
-
-let _config = null;
-function config() {
-  if (!_config) {
-    _config = {
-      ...{
-        LOG_LEVEL: 'info',
-        LOG_FORMAT: 'simple',
-      },
-      ...dotenv.parse(path.resolve(process.cwd(), '.env')),
-      ...process.env,
-    };
-    try {
-      const pkgJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
-      _config.pkgName = pkgJson.name;
-    } catch (e) {
-      _config.pkgName = 'n/a';
-    }
-  }
-  return _config;
-}
 
 // define special 'serializers' for express request
 JsonifyForLog.impl(http.IncomingMessage, (req) => ({
@@ -131,7 +110,7 @@ function init(params, logger = rootLogger) {
     logger.loggers.set('OpenWhiskLogger', owLogger);
 
     // add coralogix logger
-    const coralogix = createCoralogixLogger(config(), params);
+    const coralogix = createCoralogixLogger(params);
     if (coralogix) {
       owLogger.loggers.set('CoralogixLogger', coralogix);
       // eslint-disable-next-line no-console
@@ -139,7 +118,7 @@ function init(params, logger = rootLogger) {
     }
 
     // add papertail logger
-    const papertrail = createPapertrailLogger(config(), params);
+    const papertrail = createPapertrailLogger(params);
     if (papertrail) {
       owLogger.loggers.set('PapertraiLogger', papertrail);
       // eslint-disable-next-line no-console
@@ -243,11 +222,14 @@ function trace(fn) {
  * @example <caption></caption>
  *
  * ```js
- * const { wrap } = require('@adobe/openwhisk-action-utils'};
- * const { logger } = require('@adobe/openwhisk-action-logger'};
+ * const { wrap } = require('@adobe/openwhisk-action-utils');
+ * const { logger } = require('@adobe/openwhisk-action-logger');
  *
- * async main(params) {
+ * async function main(params) {
+ *   const { __ow_logger: log } = params;
+ *
  *   //…my action code…
+ *   log.info('.....');
  * }
  *
  * module.exports.main = wrap(main)

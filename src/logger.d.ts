@@ -35,11 +35,14 @@ declare interface WrapOptions {
  * @example <caption></caption>
  *
  * ```js
- * const { wrap } = require('@adobe/openwhisk-action-utils'};
- * const { logger } = require('@adobe/openwhisk-action-logger'};
+ * const { wrap } = require('@adobe/openwhisk-action-utils');
+ * const { logger } = require('@adobe/openwhisk-action-logger');
  *
- * async main(params) {
+ * async function main(params) {
+ *   const { __ow_logger: log } = params;
+ *
  *   //…my action code…
+ *   log.info('.....');
  * }
  *
  * module.exports.main = wrap(main)
