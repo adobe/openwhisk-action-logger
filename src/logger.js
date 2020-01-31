@@ -37,7 +37,7 @@
 
 const http = require('http');
 const {
-  rootLogger, JsonifyForLog, MultiLogger, SimpleInterface,
+  rootLogger, JsonifyForLog, MultiLogger, SimpleInterface, messageFormatSimple, ConsoleLogger,
 } = require('@adobe/helix-log');
 const { createNamespace } = require('cls-hooked');
 
@@ -101,9 +101,10 @@ class OpenWhiskLogger extends MultiLogger {
  * @param {*} params - openwhisk action params.
  * @param {MultiLogger} [logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
+ * @param {string} [level] - Overall log-level. defaults to `params.LOG_LEVEL` or 'info`.
  * @return {SimpleInterface} the helix-log simple interface
  */
-function init(params, logger = rootLogger) {
+function init(params, logger = rootLogger, level) {
   // add openwhisklogger to helix-log logger
   if (!logger.loggers.has('OpenWhiskLogger')) {
     const owLogger = new OpenWhiskLogger({});
@@ -126,10 +127,19 @@ function init(params, logger = rootLogger) {
     }
   }
 
+  // ensure console logger is setup correctly
+  if (logger === rootLogger) {
+    logger.loggers.set('default', new ConsoleLogger({
+      formatter: messageFormatSimple,
+      level: 'trace',
+    }));
+  }
+
   // create SimpleInterface if needed
   if (!params.__ow_logger) {
     const simple = new SimpleInterface({
       logger,
+      level: level || params.LOG_LEVEL || 'info',
     });
     // bind log methods to logger itself, so it's easier to pass them as functions.
     ['log', 'silly', 'trace', 'debug', 'verbose', 'info', 'warn', 'error', 'fatal'].forEach((n) => {
@@ -150,10 +160,11 @@ function init(params, logger = rootLogger) {
  * @param {object} [opts.fields] - Additional fields to log with the `ow` logging fields.
  * @param {MultiLogger} [opts.logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
+ * @param {string} [opts.level] - Overall log-level. defaults to `params.LOG_LEVEL` or 'info`.
  * @private
  * @returns {*} the return value of the action
  */
-async function wrap(fn, params = {}, { logger = rootLogger, fields = {} } = {}) {
+async function wrap(fn, params = {}, { logger = rootLogger, fields = {}, level } = {}) {
   return CLS_NAMESPACE.runAndReturn(() => {
     CLS_NAMESPACE.set(LOGGER_OW_FIELDS_NAME, {
       activationId: process.env.__OW_ACTIVATION_ID || 'n/a',
@@ -161,7 +172,7 @@ async function wrap(fn, params = {}, { logger = rootLogger, fields = {} } = {}) 
       transactionId: process.env.__OW_TRANSACTION_ID || 'n/a',
       ...fields,
     });
-    init(params, logger);
+    init(params, logger, level);
     return fn(params);
   });
 }

@@ -27,6 +27,11 @@ declare interface WrapOptions {
    * Additional fields to log with the `ow` logging fields.
    */
   fields?: object,
+
+  /**
+   * Overall log level. defaults to `params.LOG_LEVEL` or 'info`
+   */
+  level?: string,
 }
 
 /**
@@ -65,9 +70,10 @@ export declare namespace logger {
    * @param {*} params - openwhisk action params.
    * @param {MultiLogger} [logger=rootLogger] - a helix multi logger. defaults to the helix
    *                                            `rootLogger`.
+   * @param {string} level - Overall log-level. defaults to `params.LOG_LEVEL` or 'info`.
    * @returns BunyanLogger a bunyan logger.
    */
-  export function init(params: object, logger: MultiLogger): SimpleInterface;
+  export function init(params: object, logger: MultiLogger, level?: string): SimpleInterface;
 
   /**
    * Creates a tracer function that logs invocation details on `trace` level before and after the

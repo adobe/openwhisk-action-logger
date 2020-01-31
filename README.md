@@ -35,13 +35,13 @@ module.exports.main = wrap(main)
 
 
 * [logger](#module_logger)
-    * [~init(params, [logger])](#module_logger..init) ⇒ <code>SimpleInterface</code>
+    * [~init(params, [logger], [level])](#module_logger..init) ⇒ <code>SimpleInterface</code>
     * [~trace(fn)](#module_logger..trace) ⇒ <code>ActionFunction</code>
     * [~logger(fn, [opts])](#module_logger..logger) ⇒ <code>ActionFunction</code>
 
 <a name="module_logger..init"></a>
 
-### logger~init(params, [logger]) ⇒ <code>SimpleInterface</code>
+### logger~init(params, [logger], [level]) ⇒ <code>SimpleInterface</code>
 Initializes helix-log that adds additional activation related fields to the loggers.
 It also looks for credential params and tries to add additional external logger
 (eg. coralogix, papertrail).
@@ -55,6 +55,7 @@ It also initializes `params.__ow_logger` with a SimpleInterface if not already p
 | --- | --- | --- | --- |
 | params | <code>\*</code> |  | openwhisk action params. |
 | [logger] | <code>MultiLogger</code> | <code>rootLogger</code> | a helix multi logger. defaults to the helix                                            `rootLogger`. |
+| [level] | <code>string</code> |  | Overall log-level. defaults to `params.LOG_LEVEL` or 'info`. |
 
 <a name="module_logger..trace"></a>
 
