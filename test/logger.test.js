@@ -16,9 +16,7 @@
 const assert = require('assert');
 const nock = require('nock');
 const net = require('net');
-const {
-  MultiLogger, MemLogger, SimpleInterface,
-} = require('@adobe/helix-log');
+const { MultiLogger, MemLogger } = require('@adobe/helix-log');
 const { wrap } = require('@adobe/openwhisk-action-utils');
 const logger = require('../src/logger.js');
 
@@ -57,9 +55,8 @@ describe('Loggers', () => {
   });
 
   it('init sets up openwhisk logging and keeps default unaffected', () => {
-    logger.init({}, myRootLogger);
+    const log = logger.init({}, myRootLogger);
     myRootLogger.loggers.set('default', memLogger);
-    const log = new SimpleInterface({ logger: myRootLogger });
 
     log.info('Hello, world');
     assert.deepEqual(memLogger.buf, [{
@@ -69,8 +66,38 @@ describe('Loggers', () => {
     }]);
   });
 
+  it('init uses info as default log-level', () => {
+    const log = logger.init({}, myRootLogger);
+    myRootLogger.loggers.set('default', memLogger);
+
+    log.debug('Hello, world');
+    log.info('Hello, world');
+    log.warn('Hello, world');
+    assert.equal(memLogger.buf.map((r) => (r.level)).join(), 'info,warn');
+  });
+
+  it('init takes log level argument', () => {
+    const log = logger.init({}, myRootLogger, 'debug');
+    myRootLogger.loggers.set('default', memLogger);
+
+    log.debug('Hello, world');
+    log.info('Hello, world');
+    log.warn('Hello, world');
+    assert.equal(memLogger.buf.map((r) => (r.level)).join(), 'debug,info,warn');
+  });
+
+  it('init uses LOG_LEVEL param', () => {
+    const log = logger.init({ LOG_LEVEL: 'debug' }, myRootLogger);
+    myRootLogger.loggers.set('default', memLogger);
+
+    log.debug('Hello, world');
+    log.info('Hello, world');
+    log.warn('Hello, world');
+    assert.equal(memLogger.buf.map((r) => (r.level)).join(), 'debug,info,warn');
+  });
+
   it('openhwisk logging adds ow fields with defaults', () => {
-    logger.init({}, myRootLogger);
+    const log = logger.init({}, myRootLogger);
     myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);
 
     delete process.env.__OW_ACTIVATION_ID;
@@ -78,7 +105,6 @@ describe('Loggers', () => {
     delete process.env.__OW_TRANSACTION_ID;
 
     logger(() => {
-      const log = new SimpleInterface({ logger: myRootLogger });
       log.info('Hello, world');
     })();
 
@@ -109,11 +135,10 @@ describe('Loggers', () => {
   });
 
   it('openhwisk logging adds ow fields', () => {
-    logger.init({}, myRootLogger);
+    const log = logger.init({}, myRootLogger);
     myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);
 
     logger(() => {
-      const log = new SimpleInterface({ logger: myRootLogger });
       log.info('Hello, world');
     })();
 
@@ -138,7 +163,7 @@ describe('Loggers', () => {
       };
     }
     myRootLogger.loggers.set('mylogger', memLogger);
-    const result = await logger(logger.trace(main), { logger: myRootLogger })({ path: '/foo', SECRET_KEY: 'foobar' });
+    const result = await logger(logger.trace(main), { logger: myRootLogger, level: 'trace' })({ path: '/foo', SECRET_KEY: 'foobar' });
 
     assert.deepEqual(result, { body: 'ok' });
 
@@ -174,7 +199,7 @@ describe('Loggers', () => {
     logger.init({}, myRootLogger);
     myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);
 
-    const action = wrap(main).with(logger.trace).with(logger, { fields: { foo: 'bar' }, logger: myRootLogger });
+    const action = wrap(main).with(logger.trace).with(logger, { fields: { foo: 'bar' }, logger: myRootLogger, level: 'trace' });
     const result = await action({ path: '/foo', SECRET_KEY: 'foobar' });
 
     assert.deepEqual(result, { body: 'ok' });
