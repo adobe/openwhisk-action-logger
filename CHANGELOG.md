@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/adobe/openwhisk-action-logger/compare/v2.0.4...v2.1.0) (2020-01-31)
+
+
+### Features
+
+* **logger:** allow to set overall log level ([#33](https://github.com/adobe/openwhisk-action-logger/issues/33)) ([247b494](https://github.com/adobe/openwhisk-action-logger/commit/247b494057db9a0431f3581e4fca6659335561e2)), closes [#32](https://github.com/adobe/openwhisk-action-logger/issues/32)
+
 ## [2.0.4](https://github.com/adobe/openwhisk-action-logger/compare/v2.0.3...v2.0.4) (2020-01-22)
 
 
