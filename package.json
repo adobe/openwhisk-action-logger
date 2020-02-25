@@ -18,7 +18,7 @@
     "semantic-release": "semantic-release"
   },
   "dependencies": {
-    "@adobe/helix-log": "4.5.0",
+    "@adobe/helix-log": "4.5.1",
     "cls-hooked": "^4.2.2"
   },
   "devDependencies": {
