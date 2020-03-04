@@ -46,6 +46,7 @@ const createCoralogixLogger = require('./logger-coralogix');
 
 const CLS_NAMESPACE_NAME = 'ow-util-logger';
 const LOGGER_OW_FIELDS_NAME = 'ow-fields';
+const LOGGER_CDN_FIELDS_NAME = 'cdn-fields';
 
 const CLS_NAMESPACE = createNamespace(CLS_NAMESPACE_NAME);
 
@@ -78,14 +79,21 @@ class OpenWhiskLogger extends MultiLogger {
     super(logger, {
       ...opts,
       filter: (fields) => {
+        const ret = {
+          ...fields,
+        };
+
         const ow = CLS_NAMESPACE.get(LOGGER_OW_FIELDS_NAME);
         if (ow) {
-          return {
-            ow,
-            ...fields,
-          };
+          ret.ow = ow;
         }
-        return fields;
+
+        const cdn = CLS_NAMESPACE.get(LOGGER_CDN_FIELDS_NAME);
+        if (cdn) {
+          ret.cdn = cdn;
+        }
+
+        return ret;
       },
     });
   }
@@ -172,6 +180,14 @@ async function wrap(fn, params = {}, { logger = rootLogger, fields = {}, level }
       transactionId: process.env.__OW_TRANSACTION_ID || 'n/a',
       ...fields,
     });
+
+    if (params.__ow_headers && params.__ow_headers['x-cdn-url']) {
+      const url = params.__ow_headers['x-cdn-url'];
+      CLS_NAMESPACE.set(LOGGER_CDN_FIELDS_NAME, {
+        url,
+      });
+    }
+
     init(params, logger, level);
     return fn(params);
   });

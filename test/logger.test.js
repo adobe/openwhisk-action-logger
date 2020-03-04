@@ -323,4 +323,53 @@ describe('Loggers', () => {
     assert.ok(reqs[0].endsWith('test-my-action-name[1]:test-my-activati INFO Hello, world'));
     assert.ok(reqs[1].endsWith('test-my-action-name[1]:test-my-activati INFO data:{"myId":42}'));
   });
+
+  it('openhwisk logging adds cdn.url field', () => {
+    const log = logger.init({}, myRootLogger);
+    myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);
+
+    logger(() => {
+      log.info('Hello, world');
+    })({
+      __ow_headers: {
+        'x-cdn-url': 'https://www.domain.com/index.html?q=abc',
+      },
+    });
+
+    assert.deepEqual(memLogger.buf, [{
+      level: 'info',
+      message: ['Hello, world'],
+      ow: {
+        actionName: 'test-my-action-name',
+        activationId: 'test-my-activation-id',
+        transactionId: 'test-transaction-id',
+      },
+      cdn: {
+        url: 'https://www.domain.com/index.html?q=abc',
+      },
+      timestamp: '1970-01-01T00:00:00.000Z',
+    }]);
+  });
+
+  it('openhwisk logging deals with no x-cdn-url header', () => {
+    const log = logger.init({}, myRootLogger);
+    myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);
+
+    logger(() => {
+      log.info('Hello, world');
+    })({
+      __ow_headers: {},
+    });
+
+    assert.deepEqual(memLogger.buf, [{
+      level: 'info',
+      message: ['Hello, world'],
+      ow: {
+        actionName: 'test-my-action-name',
+        activationId: 'test-my-activation-id',
+        transactionId: 'test-transaction-id',
+      },
+      timestamp: '1970-01-01T00:00:00.000Z',
+    }]);
+  });
 });
