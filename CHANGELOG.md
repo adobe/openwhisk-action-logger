@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/adobe/openwhisk-action-logger/compare/v2.1.1...v2.2.0) (2020-03-04)
+
+
+### Features
+
+* **log:** log the url (from X-CDN-URL header) ([f202edf](https://github.com/adobe/openwhisk-action-logger/commit/f202edf9e48af33e76fc8e7c67a159d91b712fb4))
+
 ## [2.1.1](https://github.com/adobe/openwhisk-action-logger/compare/v2.1.0...v2.1.1) (2020-02-25)
 
 
