@@ -3,8 +3,13 @@
   "version": "2.2.0",
   "description": "Logger for OpenWhisk Actions",
   "license": "Apache-2.0",
-  "repository": "https://github.com/adobe/openwhisk-action-logger",
-  "bugs": "https://github.com/adobe/openwhisk-action-logger/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adobe/openwhisk-action-logger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adobe/openwhisk-action-logger/issues"
+  },
   "keywords": [
     "openwhisk"
   ],
@@ -49,5 +54,6 @@
     "ghooks": {
       "pre-commit": "npx lint-staged"
     }
-  }
+  },
+  "homepage": "https://github.com/adobe/openwhisk-action-logger#readme"
 }
