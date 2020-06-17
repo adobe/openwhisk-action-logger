@@ -269,7 +269,6 @@ describe('Loggers', () => {
     assert.equal(reqs[0].privateKey, '1234');
     assert.equal(reqs[0].logEntries.length, 1);
 
-
     const logEntry = JSON.parse(reqs[0].logEntries[0].text);
     delete logEntry.timestamp;
     assert.deepEqual(logEntry, {
