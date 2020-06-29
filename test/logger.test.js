@@ -243,7 +243,7 @@ describe('Loggers', () => {
     }]);
   });
 
-  it('openhwisk creates coralogix logger if needed', () => {
+  it('openhwisk creates coralogix logger if needed', async () => {
     const log = logger.init({
       CORALOGIX_API_KEY: '1234',
       CORALOGIX_APPLICATION_NAME: 'logger-test',
@@ -252,7 +252,7 @@ describe('Loggers', () => {
     }, myRootLogger);
 
     const reqs = [];
-    nock('https://api.coralogix.com/api/v1/')
+    const scope = nock('https://api.coralogix.com/api/v1/')
       .post('/logs')
       .reply((uri, requestBody) => {
         reqs.push(requestBody);
@@ -262,7 +262,10 @@ describe('Loggers', () => {
     logger(() => {
       log.infoFields('Hello, world', { myId: 42 });
     })();
-
+    // nock 13.0 needs a tick to reply to a request
+    // see https://github.com/nock/nock/blob/75507727cf09a0b7bf0aa7ebdf3621952921b82e/migration_guides/migrating_to_13.md
+    await new Promise((resolve) => setImmediate(resolve));
+    await scope.done();
     assert.equal(reqs.length, 1);
     assert.equal(reqs[0].applicationName, 'logger-test');
     assert.equal(reqs[0].subsystemName, 'test-1');
