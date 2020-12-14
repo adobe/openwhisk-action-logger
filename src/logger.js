@@ -112,8 +112,21 @@ class OpenWhiskLogger extends MultiLogger {
  * @param {string} [level] - Overall log-level. defaults to `params.LOG_LEVEL` or 'info`.
  * @return {SimpleInterface} the helix-log simple interface
  */
-function init(params, logger = rootLogger, level) {
-  // add openwhisklogger to helix-log logger
+function init(args, logger = rootLogger, level) {
+  // the args are either openwhisk _params_ or an array of the arguments of an universal request
+  let params;
+  let context = {};
+  if (Array.isArray(args)) {
+    [params] = args;
+    context = args[1] || {};
+    if (context.env) {
+      params = context.env;
+    }
+  } else {
+    params = args;
+  }
+
+  // add openwhisk logger to helix-log logger
   if (!logger.loggers.has('OpenWhiskLogger')) {
     const owLogger = new OpenWhiskLogger({});
     logger.loggers.set('OpenWhiskLogger', owLogger);
@@ -144,8 +157,9 @@ function init(params, logger = rootLogger, level) {
   }
 
   // create SimpleInterface if needed
-  if (!params.__ow_logger) {
-    const simple = new SimpleInterface({
+  let simple = params.__ow_logger || context.log;
+  if (!simple) {
+    simple = new SimpleInterface({
       logger,
       level: level || params.LOG_LEVEL || 'info',
     });
@@ -153,10 +167,13 @@ function init(params, logger = rootLogger, level) {
     ['log', 'silly', 'trace', 'debug', 'verbose', 'info', 'warn', 'error', 'fatal'].forEach((n) => {
       simple[n] = simple[n].bind(simple);
     });
-    // eslint-disable-next-line no-param-reassign
-    params.__ow_logger = simple;
+    if (params === context.env) {
+      context.log = simple;
+    } else {
+      params.__ow_logger = simple;
+    }
   }
-  return params.__ow_logger;
+  return simple;
 }
 
 /**
@@ -172,7 +189,12 @@ function init(params, logger = rootLogger, level) {
  * @private
  * @returns {*} the return value of the action
  */
-async function wrap(fn, params = {}, { logger = rootLogger, fields = {}, level } = {}) {
+async function wrap(fn, opts, ...args) {
+  const {
+    logger = rootLogger,
+    fields = {},
+    level,
+  } = opts || {};
   return CLS_NAMESPACE.runAndReturn(() => {
     CLS_NAMESPACE.set(LOGGER_OW_FIELDS_NAME, {
       activationId: process.env.__OW_ACTIVATION_ID || 'n/a',
@@ -181,6 +203,7 @@ async function wrap(fn, params = {}, { logger = rootLogger, fields = {}, level }
       ...fields,
     });
 
+    const [params] = args;
     if (params.__ow_headers && params.__ow_headers['x-cdn-url']) {
       const url = params.__ow_headers['x-cdn-url'];
       CLS_NAMESPACE.set(LOGGER_CDN_FIELDS_NAME, {
@@ -188,8 +211,8 @@ async function wrap(fn, params = {}, { logger = rootLogger, fields = {}, level }
       });
     }
 
-    init(params, logger, level);
-    return fn(params);
+    init(args, logger, level);
+    return fn(...args);
   });
 }
 
@@ -273,7 +296,7 @@ function trace(fn) {
  * @returns {ActionFunction} a new function with the same signature as your original main function
  */
 function wrapper(fn, opts) {
-  return (params) => wrap(fn, params, opts);
+  return (...args) => wrap(fn, opts, ...args);
 }
 
 module.exports = Object.assign(wrapper, {
