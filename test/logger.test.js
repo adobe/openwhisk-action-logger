@@ -243,6 +243,61 @@ describe('Loggers', () => {
     }]);
   });
 
+  it('logger can be used with helix-deploy', async () => {
+    async function main(req, context) {
+      const { log } = context;
+      log.info('Hello, world.');
+      return {
+        body: 'ok',
+      };
+    }
+    logger.init({}, myRootLogger);
+    myRootLogger.loggers.get('OpenWhiskLogger').loggers.set('mylogger', memLogger);
+
+    const action = wrap(main).with(logger.trace).with(logger, { fields: { foo: 'bar' }, logger: myRootLogger, level: 'trace' });
+    const result = await action(/* Request */ {}, { env: { path: '/foo', SECRET_KEY: 'foobar' } });
+
+    assert.deepEqual(result, { body: 'ok' });
+
+    assert.deepEqual(memLogger.buf, [{
+      level: 'trace',
+      message: ['before'],
+      params: {
+        path: '/foo',
+      },
+      ow: {
+        actionName: 'test-my-action-name',
+        activationId: 'test-my-activation-id',
+        transactionId: 'test-transaction-id',
+        foo: 'bar',
+      },
+      timestamp: '1970-01-01T00:00:00.000Z',
+    }, {
+      level: 'info',
+      message: ['Hello, world.'],
+      timestamp: '1970-01-01T00:00:00.000Z',
+      ow: {
+        actionName: 'test-my-action-name',
+        activationId: 'test-my-activation-id',
+        transactionId: 'test-transaction-id',
+        foo: 'bar',
+      },
+    }, {
+      level: 'trace',
+      message: ['result'],
+      result: {
+        body: 'ok',
+      },
+      ow: {
+        actionName: 'test-my-action-name',
+        activationId: 'test-my-activation-id',
+        transactionId: 'test-transaction-id',
+        foo: 'bar',
+      },
+      timestamp: '1970-01-01T00:00:00.000Z',
+    }]);
+  });
+
   it('openhwisk creates coralogix logger if needed', async () => {
     const log = logger.init({
       CORALOGIX_API_KEY: '1234',

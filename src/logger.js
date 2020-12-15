@@ -106,7 +106,7 @@ class OpenWhiskLogger extends MultiLogger {
  *
  * It also initializes `params.__ow_logger` with a SimpleInterface if not already present.
  *
- * @param {*} params - openwhisk action params.
+ * @param {*} args - openwhisk action params or function arguments.
  * @param {MultiLogger} [logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
  * @param {string} [level] - Overall log-level. defaults to `params.LOG_LEVEL` or 'info`.
@@ -117,8 +117,7 @@ function init(args, logger = rootLogger, level) {
   let params;
   let context = {};
   if (Array.isArray(args)) {
-    [params] = args;
-    context = args[1] || {};
+    [params = {}, context = {}] = args;
     if (context.env) {
       params = context.env;
     }
@@ -177,11 +176,11 @@ function init(args, logger = rootLogger, level) {
 }
 
 /**
- * Takes a main OpenWhisk function and intitializes logging, by invoking {@link init}.
+ * Takes a main OpenWhisk function and initializes logging, by invoking {@link init}.
  *
- * @param {ActionFunction} fn - original OpenWhisk action main function
- * @param {*} params - OpenWhisk action params
+ * @param {ActionFunction|HEDYFunction} fn - original OpenWhisk action main function
  * @param {object} [opts] - Additional wrapping options
+ * @param {*} args - OpenWhisk action params or Helix Deploy arguments
  * @param {object} [opts.fields] - Additional fields to log with the `ow` logging fields.
  * @param {MultiLogger} [opts.logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
@@ -204,7 +203,7 @@ async function wrap(fn, opts, ...args) {
     });
 
     const [params] = args;
-    if (params.__ow_headers && params.__ow_headers['x-cdn-url']) {
+    if (params && params.__ow_headers && params.__ow_headers['x-cdn-url']) {
       const url = params.__ow_headers['x-cdn-url'];
       CLS_NAMESPACE.set(LOGGER_CDN_FIELDS_NAME, {
         url,
@@ -220,12 +219,22 @@ async function wrap(fn, opts, ...args) {
  * Creates a tracer function that logs invocation details on `trace` level before and after the
  * actual action invocation.
  *
- * @param {ActionFunction} fn - original OpenWhisk action main function
- * @returns {ActionFunction} an action function instrumented with tracing.
+ * @param {ActionFunction|HEDYFunction} fn - original OpenWhisk action main function
+ * @returns {ActionFunction|HEDYFunction} an action function instrumented with tracing.
  */
 function trace(fn) {
-  return async (params) => {
+  return async (...args) => {
     try {
+      // eslint-disable-next-line prefer-const
+      let [params = {}, context = {}] = args;
+      let log;
+      if (context.env) {
+        params = context.env;
+        log = context.log;
+      } else {
+        log = params.__ow_logger;
+      }
+
       const disclosedParams = { ...params };
       Object.keys(disclosedParams)
         .forEach((key) => {
@@ -234,7 +243,7 @@ function trace(fn) {
           }
         });
       delete disclosedParams.__ow_logger;
-      const { __ow_logger: log } = params;
+
       // be a bit compatible
       const trc = log.traceFields ? (f, m) => log.traceFields(m, f) : log.trace;
       const err = log.errorFields ? (f, m) => log.errorFields(m, f) : log.error;
@@ -242,7 +251,7 @@ function trace(fn) {
         trc({
           params: disclosedParams,
         }, 'before');
-        const result = await fn(params);
+        const result = await fn(...args);
         trc({
           result,
         }, 'result');
@@ -288,12 +297,13 @@ function trace(fn) {
  * ```
  *
  * @function logger
- * @param {ActionFunction} fn - original OpenWhisk action main function
+ * @param {ActionFunction|HEDYFunction} fn - original OpenWhisk action main function
  * @param {object} [opts] - Additional wrapping options
  * @param {object} [opts.fields] - Additional fields to log with the `ow` logging fields.
  * @param {MultiLogger} [opts.logger=rootLogger] - a helix multi logger. defaults to the helix
  *                                            `rootLogger`.
- * @returns {ActionFunction} a new function with the same signature as your original main function
+ * @returns {ActionFunction|HEDYFunction} a new function with the same signature as your original
+ *                                        main function
  */
 function wrapper(fn, opts) {
   return (...args) => wrap(fn, opts, ...args);

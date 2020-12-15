@@ -14,6 +14,26 @@ import { ActionFunction } from '@adobe/openwhisk-action-utils';
 import { MultiLogger, SimpleInterface } from '@adobe/helix-log';
 
 /**
+ * Fetch Request
+ */
+export declare class Request {}
+
+/**
+ * Fetch Response
+ */
+export declare class Response {}
+
+/**
+ * Helix Deploy Context
+ */
+export declare class HEDYContext {}
+
+/**
+ * Helix Deploy Function
+ */
+export declare type HEDYFunction = (req: Request, context: HEDYContext) => Response;
+
+/**
  * Options for the wrap functions
  */
 declare interface WrapOptions {
@@ -56,11 +76,11 @@ declare interface WrapOptions {
  * ```
  *
  * @function logger
- * @param {ActionFunction} fn - original OpenWhisk action main function
+ * @param {ActionFunction|HEDYFunction} fn - original OpenWhisk or helix deploy main function
  * @param {WrapOptions} [opts] - optional options.
  * @returns {ActionFunction} a new function with the same signature as your original main function
  */
-export declare function logger(fn: ActionFunction, opts: WrapOptions): ActionFunction;
+export declare function logger(fn: ActionFunction|HEDYFunction, opts: WrapOptions): ActionFunction;
 
 export declare namespace logger {
   /**
