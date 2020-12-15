@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/adobe/openwhisk-action-logger/compare/v2.2.2...v2.3.0) (2020-12-15)
+
+
+### Features
+
+* **logger:** make wrapper ready for universal deploy ([#102](https://github.com/adobe/openwhisk-action-logger/issues/102)) ([0f746c0](https://github.com/adobe/openwhisk-action-logger/commit/0f746c09489091b1d322aa70f14795e81d0e4a56))
+
 ## [2.2.2](https://github.com/adobe/openwhisk-action-logger/compare/v2.2.1...v2.2.2) (2020-11-18)
 
 
