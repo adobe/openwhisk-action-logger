@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/adobe/openwhisk-action-logger/compare/v2.3.0...v2.3.1) (2020-12-16)
+
+
+### Bug Fixes
+
+* **log:** avoid errors when _ow_logger not defined ([#103](https://github.com/adobe/openwhisk-action-logger/issues/103)) ([409451b](https://github.com/adobe/openwhisk-action-logger/commit/409451bfacaf345f1ad38bf692ec27c62eb6ce07))
+
 # [2.3.0](https://github.com/adobe/openwhisk-action-logger/compare/v2.2.2...v2.3.0) (2020-12-15)
 
 
