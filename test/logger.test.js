@@ -243,6 +243,17 @@ describe('Loggers', () => {
     }]);
   });
 
+  it('trace doesn\'t complain if no logger', async () => {
+    async function main() {
+      return {
+        body: 'ok',
+      };
+    }
+    const action = wrap(main).with(logger.trace);
+    const result = await action({ path: '/foo', SECRET_KEY: 'foobar' });
+    assert.deepEqual(result, { body: 'ok' });
+  });
+
   it('logger can be used with helix-deploy', async () => {
     async function main(req, context) {
       const { log } = context;

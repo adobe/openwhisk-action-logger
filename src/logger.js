@@ -120,6 +120,8 @@ function init(args, logger = rootLogger, level) {
     [params = {}, context = {}] = args;
     if (context.env) {
       params = context.env;
+    } else {
+      context = {};
     }
   } else {
     params = args;
@@ -233,6 +235,10 @@ function trace(fn) {
         log = context.log;
       } else {
         log = params.__ow_logger;
+      }
+
+      if (!log) {
+        return fn(...args);
       }
 
       const disclosedParams = { ...params };
