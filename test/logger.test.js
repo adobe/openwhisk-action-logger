@@ -318,8 +318,8 @@ describe('Loggers', () => {
     }, myRootLogger);
 
     const reqs = [];
-    const scope = nock('https://api.coralogix.com/api/v1/')
-      .post('/logs')
+    const scope = nock('https://api.coralogix.com')
+      .post('/api/v1/logs')
       .reply((uri, requestBody) => {
         reqs.push(requestBody);
         return [200, 'ok'];
@@ -330,6 +330,7 @@ describe('Loggers', () => {
     })();
     // nock 13.0 needs a tick to reply to a request
     // see https://github.com/nock/nock/blob/75507727cf09a0b7bf0aa7ebdf3621952921b82e/migration_guides/migrating_to_13.md
+    await new Promise((resolve) => setImmediate(resolve));
     await new Promise((resolve) => setImmediate(resolve));
     await scope.done();
     assert.equal(reqs.length, 1);
