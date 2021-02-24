@@ -41,7 +41,6 @@ const {
 } = require('@adobe/helix-log');
 const { createNamespace } = require('cls-hooked');
 
-const createPapertrailLogger = require('./logger-papertrail');
 const createCoralogixLogger = require('./logger-coralogix');
 
 const CLS_NAMESPACE_NAME = 'ow-util-logger';
@@ -102,7 +101,7 @@ class OpenWhiskLogger extends MultiLogger {
 /**
  * Initializes helix-log that adds additional activation related fields to the loggers.
  * It also looks for credential params and tries to add additional external logger
- * (eg. coralogix, papertrail).
+ * (eg. coralogix).
  *
  * It also initializes `params.__ow_logger` with a SimpleInterface if not already present.
  *
@@ -136,14 +135,6 @@ function init(args, logger = rootLogger, level) {
     const coralogix = createCoralogixLogger(params, context);
     if (coralogix) {
       owLogger.loggers.set('CoralogixLogger', coralogix);
-    }
-
-    // add papertail logger
-    const papertrail = createPapertrailLogger(params);
-    if (papertrail) {
-      owLogger.loggers.set('PapertraiLogger', papertrail);
-      // eslint-disable-next-line no-console
-      console.log('configured papertrail logger.');
     }
   }
 
