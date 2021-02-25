@@ -15,7 +15,6 @@
 
 const assert = require('assert');
 const nock = require('nock');
-const net = require('net');
 const { MultiLogger, MemLogger } = require('@adobe/helix-log');
 const { wrap } = require('@adobe/openwhisk-action-utils');
 const logger = require('../src/logger.js');
@@ -318,8 +317,8 @@ describe('Loggers', () => {
     }, myRootLogger);
 
     const reqs = [];
-    const scope = nock('https://api.coralogix.com/api/v1/')
-      .post('/logs')
+    const scope = nock('https://api.coralogix.com')
+      .post('/api/v1/logs')
       .reply((uri, requestBody) => {
         reqs.push(requestBody);
         return [200, 'ok'];
@@ -330,6 +329,7 @@ describe('Loggers', () => {
     })();
     // nock 13.0 needs a tick to reply to a request
     // see https://github.com/nock/nock/blob/75507727cf09a0b7bf0aa7ebdf3621952921b82e/migration_guides/migrating_to_13.md
+    await new Promise((resolve) => setImmediate(resolve));
     await new Promise((resolve) => setImmediate(resolve));
     await scope.done();
     assert.equal(reqs.length, 1);
@@ -350,46 +350,6 @@ describe('Loggers', () => {
         transactionId: 'test-transaction-id',
       },
     });
-  });
-
-  it('openhwisk creates papertrail logger if needed', async () => {
-    const reqs = [];
-    let server;
-    const srv = new Promise((resolve, reject) => {
-      server = net.createServer((socket) => {
-        socket.on('data', (data) => {
-          reqs.push(...data.toString().trim().split('\n'));
-          socket.end();
-          server.close();
-        }).on('close', resolve);
-      })
-        .on('error', (err) => {
-          reject(err);
-        });
-    });
-
-    const port = await new Promise((resolve) => {
-      server.listen(() => {
-        resolve(server.address().port);
-      });
-    });
-
-    const log = logger.init({
-      PAPERTRAIL_HOST: '127.0.0.1',
-      PAPERTRAIL_PORT: port,
-      PAPERTRAIL_TLS: 'false',
-      PAPERTRAIL_LOG_LEVEL: 'info',
-    }, myRootLogger);
-
-    logger(() => {
-      log.infoFields('Hello, world', { myId: 42 });
-    })();
-
-    await srv;
-
-    assert.equal(reqs.length, 2);
-    assert.ok(reqs[0].endsWith('test-my-action-name[1]:test-my-activati INFO Hello, world'));
-    assert.ok(reqs[1].endsWith('test-my-action-name[1]:test-my-activati INFO data:{"myId":42}'));
   });
 
   it('openhwisk logging adds cdn.url field', () => {

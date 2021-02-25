@@ -41,7 +41,6 @@ const {
 } = require('@adobe/helix-log');
 const { createNamespace } = require('cls-hooked');
 
-const createPapertrailLogger = require('./logger-papertrail');
 const createCoralogixLogger = require('./logger-coralogix');
 
 const CLS_NAMESPACE_NAME = 'ow-util-logger';
@@ -102,7 +101,7 @@ class OpenWhiskLogger extends MultiLogger {
 /**
  * Initializes helix-log that adds additional activation related fields to the loggers.
  * It also looks for credential params and tries to add additional external logger
- * (eg. coralogix, papertrail).
+ * (eg. coralogix).
  *
  * It also initializes `params.__ow_logger` with a SimpleInterface if not already present.
  *
@@ -133,19 +132,9 @@ function init(args, logger = rootLogger, level) {
     logger.loggers.set('OpenWhiskLogger', owLogger);
 
     // add coralogix logger
-    const coralogix = createCoralogixLogger(params);
+    const coralogix = createCoralogixLogger(params, context);
     if (coralogix) {
       owLogger.loggers.set('CoralogixLogger', coralogix);
-      // eslint-disable-next-line no-console
-      console.log('configured coralogix logger.');
-    }
-
-    // add papertail logger
-    const papertrail = createPapertrailLogger(params);
-    if (papertrail) {
-      owLogger.loggers.set('PapertraiLogger', papertrail);
-      // eslint-disable-next-line no-console
-      console.log('configured papertrail logger.');
     }
   }
 
@@ -196,11 +185,35 @@ async function wrap(fn, opts, ...args) {
     fields = {},
     level,
   } = opts || {};
-  return CLS_NAMESPACE.runAndReturn(() => {
+
+  let activationId;
+  let actionName;
+  let transactionId;
+
+  // aws specific fields
+  if (process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    const {
+      func = {},
+      invocation = {},
+    } = args[1] || {};
+    const version = func.version ? `@${func.version}` : '';
+    activationId = invocation.id;
+    actionName = `${process.env.AWS_LAMBDA_FUNCTION_NAME}${version}`;
+    transactionId = process.env._X_AMZN_TRACE_ID;
+  }
+
+  // openwhisk specific fields
+  if (process.env.__OW_ACTIVATION_ID) {
+    activationId = process.env.__OW_ACTIVATION_ID;
+    actionName = process.env.__OW_ACTION_NAME;
+    transactionId = process.env.__OW_TRANSACTION_ID;
+  }
+
+  return CLS_NAMESPACE.runAndReturn(async () => {
     CLS_NAMESPACE.set(LOGGER_OW_FIELDS_NAME, {
-      activationId: process.env.__OW_ACTIVATION_ID || 'n/a',
-      actionName: process.env.__OW_ACTION_NAME || 'n/a',
-      transactionId: process.env.__OW_TRANSACTION_ID || 'n/a',
+      activationId: activationId || 'n/a',
+      actionName: actionName || 'n/a',
+      transactionId: transactionId || 'n/a',
       ...fields,
     });
 

@@ -15,7 +15,7 @@ const { CoralogixLogger } = require('@adobe/helix-log');
 
 let coralogixLogger = null;
 
-function createCoralogixLogger(params) {
+function createCoralogixLogger(params, context = {}) {
   const {
     CORALOGIX_API_KEY,
     CORALOGIX_APPLICATION_NAME,
@@ -26,15 +26,24 @@ function createCoralogixLogger(params) {
     return null;
   }
   if (!coralogixLogger) {
-    const {
-      __OW_ACTION_NAME: actionName = '',
-      __OW_NAMESPACE: namespace = 'n/a',
-    } = process.env;
+    let owPackage = '';
+    let namespace = '';
+    if (process.env.__OW_ACTION_NAME) {
+      [owPackage] = process.env.__OW_ACTION_NAME.split('/').splice(-2, 1);
+      namespace = process.env.__OW_NAMESPACE;
+    } else if (context.func) {
+      namespace = context.func.app;
+      const { name } = context.func;
+      if (name.indexOf('--') >= 0) {
+        [owPackage] = name.split('--');
+      }
+    }
 
     // we use the openwhisk package name as subsystem
-    const [, , owPackage] = actionName.split('/');
-    const applicationName = CORALOGIX_APPLICATION_NAME || namespace;
+    const applicationName = CORALOGIX_APPLICATION_NAME || namespace || 'n/a';
     const subsystemName = CORALOGIX_SUBSYSTEM_NAME || owPackage || 'n/a';
+    // eslint-disable-next-line no-console
+    console.log(`configured coralogix logger with: ${applicationName} / ${subsystemName}`);
     coralogixLogger = new CoralogixLogger(CORALOGIX_API_KEY, applicationName, subsystemName, {
       level: CORALOGIX_LOG_LEVEL,
     });
