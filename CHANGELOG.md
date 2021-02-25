@@ -1,3 +1,11 @@
+# [2.4.0](https://github.com/adobe/openwhisk-action-logger/compare/v2.3.1...v2.4.0) (2021-02-25)
+
+
+### Features
+
+* **log:** remove papertrail logger ([206117a](https://github.com/adobe/openwhisk-action-logger/commit/206117a40651b8c6ffe5ca8db4642a32562a7bae))
+* **universal:** ensure proper config and flush coralogix ([7dbd1a4](https://github.com/adobe/openwhisk-action-logger/commit/7dbd1a4a34b6d83857991e8eab6b4ffdae3385d1))
+
 ## [2.3.1](https://github.com/adobe/openwhisk-action-logger/compare/v2.3.0...v2.3.1) (2020-12-16)
 
 
