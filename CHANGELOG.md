@@ -1,3 +1,10 @@
+## [2.4.3](https://github.com/adobe/openwhisk-action-logger/compare/v2.4.2...v2.4.3) (2021-04-02)
+
+
+### Bug Fixes
+
+* **deps:** update [@adobe](https://github.com/adobe) ([68d4bf9](https://github.com/adobe/openwhisk-action-logger/commit/68d4bf978ec32ac664e950ff650a547535206c28))
+
 ## [2.4.2](https://github.com/adobe/openwhisk-action-logger/compare/v2.4.1...v2.4.2) (2021-04-02)
 
 
