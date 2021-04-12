@@ -1,6 +1,6 @@
 {
   "name": "@adobe/openwhisk-action-logger",
-  "version": "2.4.3",
+  "version": "2.4.4",
   "description": "Logger for OpenWhisk Actions",
   "license": "Apache-2.0",
   "repository": {
