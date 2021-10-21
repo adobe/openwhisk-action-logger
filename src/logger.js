@@ -37,10 +37,11 @@
 
 const http = require('http');
 const {
-  rootLogger, JsonifyForLog, MultiLogger, SimpleInterface, messageFormatSimple, ConsoleLogger,
+  JsonifyForLog, MultiLogger, SimpleInterface, messageFormatSimple, ConsoleLogger,
 } = require('@adobe/helix-log');
 const { createNamespace } = require('cls-hooked');
 
+const rootLogger = require('./root-logger');
 const createCoralogixLogger = require('./logger-coralogix');
 
 const CLS_NAMESPACE_NAME = 'ow-util-logger';
