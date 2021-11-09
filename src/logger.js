@@ -112,6 +112,7 @@ class OpenWhiskLogger extends MultiLogger {
  * @param {string} [level] - Overall log-level. defaults to `params.LOG_LEVEL` or 'info`.
  * @return {SimpleInterface} the helix-log simple interface
  */
+// eslint-disable-next-line default-param-last
 function init(args, logger = rootLogger, level) {
   // the args are either openwhisk _params_ or an array of the arguments of an universal request
   let params;
